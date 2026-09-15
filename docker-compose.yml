@@ -1,0 +1,33 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: labourpay
+      POSTGRES_USER: labourpay
+      POSTGRES_PASSWORD: labourpay
+    ports:
+      - "5432:5432"
+    volumes:
+      - labourpay_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U labourpay -d labourpay"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    environment:
+      APP_ENV: development
+      DEBUG: "false"
+      SECRET_KEY: "development-only-change-me"
+      DATABASE_URL: postgresql+asyncpg://labourpay:labourpay@postgres:5432/labourpay
+      CORS_ORIGINS: http://localhost:5173
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  labourpay_pgdata:
