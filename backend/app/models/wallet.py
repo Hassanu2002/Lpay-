@@ -12,7 +12,7 @@ class Wallet(Base):
     __tablename__ = "wallets"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"), unique=True, nullable=False, index=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"), unique=True, nullable=False)
     ledger_account_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("ledger_accounts.id", ondelete="RESTRICT"), unique=True, nullable=False)
     currency: Mapped[str] = mapped_column(String(3), nullable=False, default="NGN")
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="ACTIVE")
@@ -20,6 +20,7 @@ class Wallet(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
     __table_args__ = (
+        Index("ix_wallets_user_id", "user_id"),
         CheckConstraint("currency = 'NGN'", name="ck_wallet_currency_ngn"),
         CheckConstraint("status IN ('ACTIVE','FROZEN','CLOSED')", name="ck_wallet_status"),
     )
@@ -85,8 +86,8 @@ class WalletTransaction(Base):
     __tablename__ = "wallet_transactions"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"), nullable=False, index=True)
-    wallet_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("wallets.id", ondelete="RESTRICT"), nullable=False, index=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"), nullable=False)
+    wallet_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("wallets.id", ondelete="RESTRICT"), nullable=False)
     ledger_transaction_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("ledger_transactions.id", ondelete="RESTRICT"), unique=True, nullable=False)
     transaction_type: Mapped[str] = mapped_column(String(32), nullable=False)
     status: Mapped[str] = mapped_column(String(24), nullable=False, default="SUCCESS")
